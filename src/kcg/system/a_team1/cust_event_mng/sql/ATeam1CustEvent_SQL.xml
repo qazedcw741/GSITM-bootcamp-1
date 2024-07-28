@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace='system.a_team1'>
+
+	<select id="getList" parameterType="cmmnMap"
+		resultType="cmmnMap">
+		/* system.a_team1.getT1List */
+		WITH event_data AS (
+		SELECT
+			a.cust_name,
+			a.cust_pridtf_no,
+			a.cust_mbl_telno,
+		CASE
+			WHEN SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = 
+			TO_CHAR(CURRENT_DATE, 'MM') THEN 'birthday'
+			ELSE NULL
+			END AS event_name,
+		CASE
+		    WHEN SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM')
+		    AND TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2)  
+		    		&lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+		    THEN TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2) 
+		       		|| '(종료)'
+		    ELSE TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2)
+        END AS event_date
+		FROM 
+			kcgbd.t1_cust AS a
+		WHERE
+			SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM')
+		AND a.cust_yn = 'Y'
+
+		UNION ALL
+
+		SELECT
+			a.cust_name,
+			a.cust_pridtf_no,
+			a.cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') 
+			= TO_CHAR(CURRENT_DATE,'YYYYMM') THEN '예금만기일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') = TO_CHAR(CURRENT_DATE,'YYYYMM')
+			AND TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD')
+		END AS event_date
+		FROM 
+			kcgbd.t1_cust AS a
+			LEFT JOIN kcgbd.t1_dsgn_sav AS sav 
+			ON a.cust_mbl_telno = sav.dsgn_sav_cust_mbl_telno
+		WHERE 
+			TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') = TO_CHAR(CURRENT_DATE,'YYYYMM')
+		AND a.cust_yn = 'Y'
+		
+		UNION ALL
+
+		SELECT
+			a.cust_name,
+			a.cust_pridtf_no,
+			a.cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') =
+			TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '목돈만기일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+			AND TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD')
+		END AS event_date
+		FROM 
+			kcgbd.t1_cust AS a
+			LEFT JOIN kcgbd.t1_dsgn_acml AS acml 
+			ON a.cust_mbl_telno = acml.dsgn_acml_cust_mbl_telno
+		WHERE 
+			TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'	
+
+		UNION ALL
+
+		SELECT
+			a.cust_name,
+			a.cust_pridtf_no,
+			a.cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') =
+			TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '대출상환일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+			AND TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD')
+		END AS event_date
+		FROM 
+			kcgbd.t1_cust AS a
+			LEFT JOIN kcgbd.t1_dsgn_loan AS loan 
+			ON a.cust_mbl_telno = loan.dsgn_loan_cust_mbl_telno
+		WHERE 
+			TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') =
+			TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'	
+
+		UNION ALL
+
+		SELECT
+			a.cust_name,
+			a.cust_pridtf_no,
+			a.cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = 
+			TO_CHAR(CURRENT_DATE,'YYYYMM') THEN '적금만기일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+			AND TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD')
+		END AS event_date
+		FROM 
+			kcgbd.t1_cust AS a
+			LEFT JOIN kcgbd.t1_dsgn_dpst AS dpst 
+			ON a.cust_mbl_telno = dpst.dsgn_dpst_cust_mbl_telno
+		WHERE 
+			TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE,'YYYYMM')
+		AND a.cust_yn = 'Y'	
+		)
+		SELECT
+			ROW_NUMBER() OVER () AS no,
+			event_data.cust_name,
+			event_data.cust_pridtf_no,
+			event_data.cust_mbl_telno,
+			event_data.event_name,
+			event_data.event_date
+			FROM event_data
+		WHERE 1 = 1
+		<!-- 고객이름 검색 -->
+		<if test="cust_name != null">
+			AND event_data.cust_name LIKE '%' || #{cust_name} || '%'
+		</if>
+		<!-- 이벤트 이름 검색 -->
+		<if test="event_name != null">
+			AND event_data.event_name LIKE '%' || #{event_name} || '%'
+		</if>
+		<!-- 이벤트 날짜 검색 -->
+		<if test="event_date != null">
+			AND event_data.event_date::text LIKE '%' || #{event_date} || '%'
+		</if>
+		<!-- 휴대전화 검색 -->
+		<if test="cust_mbl_telno != null">
+			AND event_data.cust_mbl_telno LIKE '%' || #{cust_mbl_telno} || '%'
+		</if>
+	</select>
+
+
+	<select id="getListAll" parameterType="cmmnMap"
+		resultType="cmmnMap">
+		/* system.a_team1.getT1ListAll */
+		SELECT
+			ROW_NUMBER() OVER () AS no,
+			a.cust_name AS cust_name,
+			a.cust_pridtf_no AS cust_pridtf_no,
+			a.cust_mbl_telno AS cust_mbl_telno,
+		CASE
+			WHEN SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) =
+			TO_CHAR(CURRENT_DATE, 'MM') THEN 'birthday'
+			ELSE NULL
+		END AS event_name,
+		CASE
+		    WHEN SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM')
+		    AND TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2)  
+		    		&lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+		    THEN TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2) 
+		       		|| '(종료)'
+		    ELSE TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2)
+        END AS event_date
+		FROM
+			kcgbd.t1_cust AS a
+		WHERE
+			SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM')
+		AND a.cust_yn = 'Y'
+			
+		UNION ALL
+		
+		SELECT
+			ROW_NUMBER() OVER () AS no,
+			a.cust_name AS cust_name,
+			a.cust_pridtf_no AS cust_pridtf_no,
+			a.cust_mbl_telno AS cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' *
+			sav.dsgn_sav_target), 'YYYYMM') = TO_CHAR(CURRENT_DATE,
+			'YYYYMM') THEN '예금만기일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') = TO_CHAR(CURRENT_DATE,'YYYYMM')
+			AND TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD')
+		END AS event_date
+		FROM
+			kcgbd.t1_cust AS a
+			LEFT JOIN kcgbd.t1_dsgn_sav AS sav 
+			ON a.cust_mbl_telno = sav.dsgn_sav_cust_mbl_telno
+		WHERE
+			TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM')
+			= TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'
+			
+		UNION ALL
+		
+		SELECT
+			ROW_NUMBER() OVER () AS no,
+			a.cust_name AS cust_name,
+			a.cust_pridtf_no AS cust_pridtf_no,
+			a.cust_mbl_telno AS cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') =
+			TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '목돈만기일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+			AND TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD')
+		END AS event_date
+		FROM
+			kcgbd.t1_cust AS a
+			LEFT JOIN
+			kcgbd.t1_dsgn_acml AS acml 
+			ON a.cust_mbl_telno = acml.dsgn_acml_cust_mbl_telno
+		WHERE
+			TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd),
+			'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'
+			
+		UNION ALL
+		
+		SELECT
+			ROW_NUMBER() OVER () AS no,
+			a.cust_name AS cust_name,
+			a.cust_pridtf_no AS cust_pridtf_no,
+			a.cust_mbl_telno AS cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') =
+			TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '대출상환일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+			AND TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD')
+		END AS event_date
+		FROM
+			kcgbd.t1_cust AS a
+			LEFT JOIN kcgbd.t1_dsgn_loan AS loan 
+			ON a.cust_mbl_telno = loan.dsgn_loan_cust_mbl_telno
+		WHERE
+			TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd),
+			'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'
+			
+		UNION ALL
+		
+		SELECT
+			ROW_NUMBER() OVER () AS no,
+			a.cust_name AS cust_name,
+			a.cust_pridtf_no AS cust_pridtf_no,
+			a.cust_mbl_telno AS cust_mbl_telno,
+		CASE
+			WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE,
+			'YYYYMM') THEN '적금만기일'
+			ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+			AND TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+			THEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD') || '(종료)'
+			ELSE TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD')
+		END AS event_date
+		FROM
+			kcgbd.t1_cust AS a
+			LEFT JOIN
+			kcgbd.t1_dsgn_dpst AS dpst 
+			ON a.cust_mbl_telno = dpst.dsgn_dpst_cust_mbl_telno
+		WHERE
+			TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') =
+			TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'	
+	</select>
+
+	<select id="getInfo" parameterType="cmmnMap"
+		resultType="cmmnMap">
+		/* system.a_team1.getT1Info */
+		SELECT
+			a.cust_name AS cust_name,
+			a.cust_cr AS cust_cr,
+			a.cust_pridtf_no AS cust_pridtf_no,
+			a.cust_email AS cust_email,
+			a.cust_home_telno AS cust_home_telno,
+			a.cust_mbl_telno AS cust_mbl_telno,
+			a.cust_addr AS cust_addr,
+			a.wrt_dt AS wrt_dt,
+			b.cnsl_details AS cnsl_details
+		FROM
+			kcgbd.t1_cust AS a
+			LEFT JOIN
+			kcgbd.t1_cnsl AS b
+		ON
+			a.cust_sn = b.cust_sn
+		WHERE 1=1
+		AND a.cust_mbl_telno = #{cust_mbl_telno}
+		 LIMIT 1
+	</select>
+	
+	<select id="getListEvent" parameterType="cmmnMap"
+		resultType="cmmnMap">
+		/* system.a_team1.getT1ListEvent */
+		WITH event_data AS (
+		SELECT
+			a.cust_name,
+			a.cust_pridtf_no,
+			a.cust_mbl_telno,
+		CASE
+			WHEN SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM') THEN 'birthday'
+		ELSE NULL
+		END AS event_name,
+		CASE
+			WHEN SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM') THEN TO_CHAR(CURRENT_DATE, 'YYYY') || '-' || 
+			SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) || '-' || SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 5, 2)
+		ELSE NULL
+		END AS event_date
+		FROM 
+			kcgbd.t1_cust AS a
+		WHERE 
+			SUBSTRING(CAST(a.cust_pridtf_no AS VARCHAR), 3, 2) = TO_CHAR(CURRENT_DATE, 'MM')
+		AND a.cust_yn = 'Y'	
+
+    UNION ALL
+
+    SELECT
+        a.cust_name,
+        a.cust_pridtf_no,
+        a.cust_mbl_telno,
+        CASE
+            WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') = 
+            TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '예금만기일'
+            ELSE NULL
+        END AS event_name,
+        CASE
+            WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+            THEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYY-MM-DD')
+            ELSE NULL
+        END AS event_date
+   	    FROM 
+   	    	kcgbd.t1_cust AS a
+    		LEFT JOIN kcgbd.t1_dsgn_sav AS sav 
+    		ON a.cust_mbl_telno = sav.dsgn_sav_cust_mbl_telno
+    	WHERE 
+    		TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'
+		
+    UNION ALL
+
+    SELECT
+        a.cust_name,
+        a.cust_pridtf_no,
+        a.cust_mbl_telno,
+        CASE
+            WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') = 
+            TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '목돈만기일'
+            ELSE NULL
+        END AS event_name,
+        CASE
+            WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+            THEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYY-MM-DD')
+            ELSE NULL
+        END AS event_date
+	    FROM 
+	    	kcgbd.t1_cust AS a
+	    	LEFT JOIN kcgbd.t1_dsgn_acml AS acml 
+	    	ON a.cust_mbl_telno = acml.dsgn_acml_cust_mbl_telno
+	    WHERE 
+	    	TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+	    AND a.cust_yn = 'Y'
+	    
+	    UNION ALL
+	
+	    SELECT
+	        a.cust_name,
+	        a.cust_pridtf_no,
+	        a.cust_mbl_telno,
+	    CASE
+            WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') = 
+            TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '대출상환일'
+            ELSE NULL
+        END AS event_name,
+        CASE
+            WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+            THEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYY-MM-DD')
+            ELSE NULL
+        END AS event_date
+	    FROM 
+	    	kcgbd.t1_cust AS a
+	   		LEFT JOIN kcgbd.t1_dsgn_loan AS loan
+	   		ON a.cust_mbl_telno = loan.dsgn_loan_cust_mbl_telno
+	    WHERE 
+	    	TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+	    AND a.cust_yn = 'Y'
+	    
+	    UNION ALL
+	
+	    SELECT
+	        a.cust_name,
+	        a.cust_pridtf_no,
+	        a.cust_mbl_telno,
+        CASE
+            WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = 
+            TO_CHAR(CURRENT_DATE, 'YYYYMM') THEN '적금만기일'
+            ELSE NULL
+        END AS event_name,
+        CASE
+            WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM') 
+            THEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYY-MM-DD')
+            ELSE NULL
+        END AS event_date
+	    FROM 
+	    	kcgbd.t1_cust AS a
+	    	LEFT JOIN kcgbd.t1_dsgn_dpst AS dpst
+	    	ON a.cust_mbl_telno = dpst.dsgn_dpst_cust_mbl_telno
+	    WHERE 
+	    	TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd), 'YYYYMM') = TO_CHAR(CURRENT_DATE, 'YYYYMM')
+		AND a.cust_yn = 'Y'
+	)
+	SELECT
+	    ROW_NUMBER() OVER () AS no,
+	    event_data.cust_name,
+	    event_data.cust_pridtf_no,
+	    event_data.cust_mbl_telno,
+	    event_data.event_name,
+	    event_data.event_date
+	FROM event_data 
+	WHERE event_data.event_date &gt;= TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+	</select>
+</mapper>
