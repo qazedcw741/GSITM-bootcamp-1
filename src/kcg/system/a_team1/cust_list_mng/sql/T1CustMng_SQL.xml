@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace='system.a_1team_cust_mng'>
+<select id="getT1CustListAll" parameterType="cmmnMap" resultType="cmmnMap">
+	SELECT 
+    A.cust_name AS cust_name,
+    SUBSTRING(A.cust_pridtf_no, 1, 6) AS cust_birthdate,
+    A.cust_mbl_telno AS cust_mbl_telno, 
+    A.cust_cr AS cust_cr,
+    A.cust_addr AS cust_addr,
+    B.drt_name AS drt_name
+FROM 
+    kcgbd.t1_cust A
+LEFT JOIN 
+    kcgbd.t1_drt B on B.drt_sn = A.drt_sn
+WHERE 1=1
+</select>
+<select id="getT1DrtSearchList" parameterType="cmmnMap" resultType="cmmnMap">
+	SELECT
+		a.drt_name
+	FROM kcgbd.t1_crt a
+</select>
+<select id="getT1SearchList" parameterType="cmmnMap" resultType="cmmnMap">
+      SELECT 
+        A.cust_name AS cust_name,
+        A.cust_mbl_telno AS cust_mbl_telno,
+        A.cust_cr AS cust_cr,
+        A.cust_addr AS cust_addr,
+        B.drt_name AS drt_name,
+        substring(A.cust_pridtf_no, 1, 6) AS cust_birthdate,
+        substring(A.cust_pridtf_no, 1, 2)::integer AS birth_year,
+        substring(A.cust_pridtf_no, 3, 2)::integer AS birth_month,
+        substring(A.cust_pridtf_no, 5, 2)::integer AS birth_day
+    FROM kcgbd.t1_cust A
+        LEFT JOIN kcgbd.t1_drt B ON A.drt_sn = B.drt_sn
+    WHERE 1=1	
+        <if test='cust_name != ""'>
+            AND A.cust_name LIKE CONCAT('%', #{cust_name},'%') 
+        </if>
+        <if test='drt_name != ""'>
+            AND B.drt_name LIKE CONCAT('%', #{drt_name},'%') 
+        </if>
+        <if test='birth_year != null and birth_year != ""'>
+            AND substring(A.cust_pridtf_no, 1, 2)::integer = #{birth_year, jdbcType=INTEGER}
+        </if>
+        <if test='birth_month != null and birth_month != ""'>
+            AND substring(A.cust_pridtf_no, 3, 2)::integer = #{birth_month, jdbcType=INTEGER}
+        </if>
+        <if test='birth_day != null and birth_day != ""'>
+            AND substring(A.cust_pridtf_no, 5, 2)::integer = #{birth_day, jdbcType=INTEGER}
+        </if>
+</select>
+<select id="getT1CustInfo" parameterType="cmmnMap" resultType="cmmnMap">
+SELECT
+    A.cust_name AS cust_name,
+    A.cust_pridtf_no AS cust_pridtf_no,
+    A.cust_mbl_telno AS cust_mbl_telno,
+    A.cust_home_telno AS cust_home_telno,
+    A.cust_email AS cust_email,
+    A.cust_cr AS cust_cr,
+    A.cust_addr AS cust_addr,
+    CONCAT(SUBSTRING(A.cust_pridtf_no, 1, 8), '******') AS cust_safety_num,
+    A.wrt_dt AS wrt_dt,
+    B.cnsl_date AS cnsl_date,
+    B.cnsl_details AS cnsl_details
+FROM
+    kcgbd.t1_cust A
+    LEFT JOIN (
+        SELECT
+            cust_sn,
+            cnsl_date,
+            cnsl_details
+        FROM
+            kcgbd.t1_cnsl B1
+        WHERE
+            (cust_sn, cnsl_date) IN (
+                SELECT
+                    B2.cust_sn,
+                    MAX(B2.cnsl_date) AS max_cnsl_date
+                FROM
+                    kcgbd.t1_cnsl B2
+                GROUP BY
+                    B2.cust_sn
+            )
+    ) B ON A.cust_sn = B.cust_sn
+WHERE 1=1
+AND A.cust_mbl_telno = #{cust_mbl_telno};
+
+</select>
+<select id="getT1CustCardDetail" parameterType="cmmnMap" resultType="cmmnMap">
+	       SELECT
+    A.cust_name                   AS cust_name,
+    A.cust_pridtf_no              AS cust_pridtf_no,
+    A.cust_mbl_telno              AS cust_mbl_telno,
+    A.cust_home_telno             AS cust_home_telno,
+    A.cust_email                  AS cust_email,
+    A.cust_cr                     AS cust_cr,
+    CONCAT(SUBSTRING(A.cust_pridtf_no, 1, 8), '******') as cust_safety_num,
+    A.cust_addr                   AS cust_addr,
+    C.drt_name                    AS drt_name,
+    C.drt_dpt                     AS drt_dpt,
+    C.drt_phone                   AS drt_phone,
+    B.cnsl_date                   AS cnsl_date,
+    B.cnsl_details                AS cnsl_details
+FROM
+    kcgbd.t1_cust A
+    LEFT OUTER JOIN kcgbd.t1_cnsl B ON A.cust_sn = B.cust_sn
+    LEFT OUTER JOIN kcgbd.t1_drt C ON A.drt_sn = C.drt_sn
+    WHERE 1=1
+    AND A.cust_mbl_telno = #{cust_mbl_telno}
+</select>
+<select id="getT1CustCardList" parameterType="cmmnMap" resultType="cmmnMap">
+	select
+             A.cust_name             		 as cust_name 
+            ,SUBSTRING(A.cust_pridtf_no,1,6) as cust_birthdate
+            ,A.cust_mbl_telno      		     as cust_mbl_telno
+            ,A.cust_cr  					 as cust_cr
+            ,A.cust_addr        			 as cust_addr
+         from kcgbd.t1_cust A
+</select>
+<select id="getT1DrtInfo" parameterType="cmmnMap" resultType="cmmnMap">
+		select 
+		     A.drt_name                    as drt_name
+            ,A.drt_dpt                     as drt_dpt
+            ,A.drt_phone              	as drt_phone
+         from kcgbd.t1_drt  A
+        where 1=1
+</select>
+<select id="getT1InitInfo" parameterType="cmmnMap" resultType="cmmnMap">
+		select 
+		     A.drt_name                      as drt_name
+            ,A.drt_dpt                     as drt_dpt
+            ,A.drt_phone               as drt_phone
+            ,A.drt_eml                as drt_eml
+         from kcgbd.t1_drt  A
+        where 1=1
+</select>
+<select id="getT1CustList" parameterType="cmmnMap" resultType="cmmnMap">
+       select
+            B.cust_name             as cust_name
+           ,SUBSTRING(B.cust_pridtf_no,1,6) as cust_birthdate
+           ,B.CUST_MBL_TELNO      as cust_mbl_telno
+           ,A.event_date         as event_date
+        from kcgbd.t1_rltn_cust_event  A
+            ,kcgbd.t1_cust B
+        WHERE 1=1
+          and A.CUST_sn = B.CUST_sn
+          <if test='cust_mbl_telno !=""'>
+          AND B.cust_mbl_telno = #{cust_mbl_telno}
+          </if>
+          <if test='cust_name != ""'>
+            and B.cust_name = #{cust_name}
+        </if>
+</select>
+<select id="getT1CustInfoProd" parameterType="cmmnMap" resultType="cmmnMap">
+      select
+         A.cust_sn as cust_sn
+         ,A.cust_name as cust_name
+         ,A.cust_pridtf_no as cust_pridtf_no
+         ,A.cust_mbl_telno as cust_mbl_telno
+         ,A.cust_home_telno as cust_home_telno
+         ,A.cust_email as cust_email
+         ,A.cust_cr as cust_cr
+         ,A.cust_addr as cust_addr
+         ,A.wrt_dt as wrt_dt
+         ,A.cust_credit_score as cust_credit_score
+      FROM
+         kcgbd.t1_cust A
+      WHERE 1=1
+      AND A.cust_mbl_telno = #{cust_mbl_telno}
+      limit 1
+   </select>
+</mapper>
