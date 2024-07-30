@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace='system.a_team1_cust_mng'>
+
+	
+	<!-- 모든 고객 검색 | 전체 검색 -->
+	<select id="getCustAllList" parameterType="cmmnMap" resultType="cmmnMap">
+		<!-- a_team1 고객 이름 data 출력 -->
+		SELECT  A.CUST_NAME                    as CUST_NAME 
+			  , A.CUST_SN                 	  as CUST_SN 
+		<!-- a_team1 고객 데이터 테이블로 변경 -->
+         FROM kcgbd.T1_CUST A
+        <!-- 고객 정보 비활성화 확인 -->
+		 where A.CUST_YN = 'Y'
+	</select>
+	
+	<!-- 고객이름 , 주민번호 | 조건 검색 -->
+	<select id="getCustOneList" parameterType="cmmnMap" resultType="cmmnMap">
+		<!-- a_team1 고객 이름 data 출력 -->
+		SELECT  A.CUST_NAME                    as CUST_NAME
+			  , A.CUST_SN                 	  as CUST_SN   
+		<!-- a_team1 고객 데이터 테이블로 변경 -->
+         FROM kcgbd.T1_CUST A
+        <!-- 고객 정보 비활성화 확인 -->
+		 where A.CUST_YN = 'Y'
+	    <if test='cust_nm != ""'>
+      		and A.CUST_NAME  LIKE CONCAT('%', #{cust_name},'%')
+        </if>
+        <if test='rrno != ""'>
+      	    and A.CUST_PRIDTF_NO LIKE CONCAT('%', #{cust_pridtf_no},'%')
+        </if>
+	</select>
+	
+	
+	<!-- Radio 버튼 선택 -->
+		<!-- Cust -->
+	<select id="getRadioCustOne" parameterType="cmmnMap" resultType="cmmnMap">
+		<!-- a_team1 고객 이름 data 출력 -->
+		<!--STRUCT : AS 사용 시 : STRUCT를 사용하여 객체를 정의 > Postgre 지원하지 않음 >row만-->
+		SELECT  A.CUST_SN               	  as CUST_SN2 
+               ,A.WRT_DT              	      as WRT_DT
+               ,A.CUST_NAME              	  as CUST_NAME2
+               ,A.CUST_PRIDTF_NO              as CUST_PRIDTF_NO2
+               ,A.CUST_EMAIL              	  as CUST_EMAIL
+               ,A.CUST_HOME_TELNO             as CUST_HOME_TELNO
+               ,A.CUST_MBL_TELNO              as CUST_MBL_TELNO
+               ,A.CUST_ADDR                   as CUST_ADDR
+               ,A.CUST_CR                     as CUST_CR 
+               ,A.OCCP_TY_CD                  as OCCP_TY_CD 
+               ,A.CUST_YN                     as CUST_YN
+               ,B.DRT_SN               	 	  as DRT_SN 
+               ,B.DRT_NAME              	  as DRT_NAME
+               ,B.DRT_PHONE              	  as DRT_PHONE
+               ,B.DRT_DPT              		  as DRT_DPT
+               ,B.DRT_EML              	  	  as DRT_EML
+               ,B.DRT_HD             	  	  as DRT_HD
+               ,C.CNSL_DETAILS                as CNSL_DETAILS
+               ,C.CNSL_DATE                   as CNSL_DATE
+		<!-- a_team1 고객-상담 -->
+         FROM kcgbd.T1_CUST A
+         LEFT OUTER JOIN kcgbd.T1_DRT B ON A.DRT_SN = B.DRT_SN
+         LEFT OUTER JOIN kcgbd.T1_CNSL C ON A.CUST_SN = C.CUST_SN
+        <!-- 선택한 radio=cust_nm 동일한 data 찾기 -->
+		 where A.CUST_SN = #{cust_sn}
+	</select>
+	
+	<!-- Radio 버튼 선택 -->
+	
+	<!-- 등록 버튼 -->
+	<insert id="insertCustInfo" parameterType="cmmnMap">
+		INSERT INTO kcgbd.T1_CUST(
+			cust_sn
+		   ,wrt_dt
+		   ,cust_name
+	       ,cust_pridtf_no
+	       ,cust_home_telno
+	       ,cust_mbl_telno
+	       ,cust_email
+	       ,occp_ty_cd
+	       ,cust_addr
+	       ,cust_cr
+	       ,cust_yn
+	       ,drt_sn
+		)VALUES(
+			nextval('kcgbd.t1_cust_cust_sn_seq'::regclass)
+		   ,#{wrt_dt}
+		   ,#{cust_name}
+	       ,#{cust_pridtf_no}
+	       ,#{cust_home_telno}
+	       ,#{cust_mbl_telno}
+	       ,#{cust_email}
+	       ,#{occp_ty_cd}
+	       ,#{cust_addr}
+	       ,#{cust_cr}
+	       ,#{cust_yn}
+	       ,#{drt_sn}
+			)
+	</insert>
+	<!-- 등록 버튼 -->
+	
+	<!-- 등록 버튼 -->
+	<insert id="insertAllInfo" parameterType="cmmnMap">
+	WITH new_cust AS (
+		INSERT INTO kcgbd.T1_CUST(
+			cust_sn
+		   ,wrt_dt
+		   ,cust_name
+	       ,cust_pridtf_no
+	       ,cust_home_telno
+	       ,cust_mbl_telno
+	       ,cust_email
+	       ,occp_ty_cd
+	       ,cust_addr
+	       ,cust_cr
+	       ,cust_yn
+	       ,drt_sn
+		)VALUES(
+			nextval('kcgbd.t1_cust_cust_sn_seq'::regclass)
+		   ,#{wrt_dt}
+		   ,#{cust_name}
+	       ,#{cust_pridtf_no}
+	       ,#{cust_home_telno}
+	       ,#{cust_mbl_telno}
+	       ,#{cust_email}
+	       ,#{occp_ty_cd}
+	       ,#{cust_addr}
+	       ,#{cust_cr}
+	       ,#{cust_yn}
+	       ,#{drt_sn}
+			)
+		 RETURNING cust_sn
+		 )
+		<!-- PostgreSQL : mybatis = RETURNING -->
+		INSERT INTO kcgbd.T1_CNSL (
+		    cust_sn,
+		    cnsl_details,
+		    cnsl_date
+		)
+		SELECT
+		    cust_sn,
+		    #{cnsl_details},
+		    #{cnsl_date}
+		FROM new_cust;
+	</insert>
+	<!-- 등록 버튼 -->
+	
+	<!-- 수정 버튼 -->
+	<update id="updateCustInfo" parameterType="cmmnMap">
+		UPDATE 
+			kcgbd.T1_CUST 
+		SET
+			 wrt_dt = #{wrt_dt}
+		    ,cust_name = #{cust_name}
+	        ,cust_pridtf_no = #{cust_pridtf_no}
+	        ,cust_home_telno = #{cust_home_telno}
+	        ,cust_mbl_telno = #{cust_mbl_telno}
+	        ,cust_email = #{cust_email}
+	        ,occp_ty_cd = #{occp_ty_cd}
+	        ,cust_addr = #{cust_addr}
+	        ,cust_cr = #{cust_cr}
+	        ,drt_sn = #{drt_sn}
+	        
+		WHERE CUST_SN = #{cust_sn};
+		
+	</update>
+	
+	<insert id="insertCnslInfo" parameterType="cmmnMap">
+		INSERT INTO kcgbd.T1_CNSL (
+			cnsl_sn
+		   ,cnsl_details
+		   ,cnsl_date
+		   ,cust_sn
+		)VALUES(
+			nextval('kcgbd.t1_cust_cust_sn_seq'::regclass)
+		   ,#{cnsl_details}
+		   ,#{cnsl_date}
+	       ,#{cust_sn}
+			)
+	</insert>
+	<!-- 수정 버튼 -->
+	
+	<!-- 삭제 버튼 -->
+	<update id="deleteCustInfo" parameterType="cmmnMap">
+		UPDATE 
+			  kcgbd.T1_CUST 
+		SET
+		   	  cust_yn = #{cust_yn} 
+		   
+		WHERE CUST_SN = #{cust_sn}
+	</update>
+	<!-- 삭제 버튼 -->
+	
+	<!-- 고객 - 담당자 info -->
+	<select id="getInitInfo" parameterType="cmmnMap" resultType="cmmnMap">
+		select 
+                A.DRT_SN              	      as DRT_SN
+		       ,A.DRT_NAME              	  as DRT_NAME
+               ,A.DRT_PHONE              	  as DRT_PHONE
+               ,A.DRT_DPT              		  as DRT_DPT
+               ,A.DRT_EML              	  	  as DRT_EML
+               ,A.DRT_HD              	  	  as DRT_HD
+         from kcgbd.T1_DRT  A
+        where A.DRT_SN = #{drt_sn}
+	</select>
+	
+	<select id="getPicInfo" parameterType="cmmnMap" resultType="cmmnMap">
+		select 
+				A.DRT_SN              	      as DRT_SN
+		       ,A.DRT_NAME              	  as DRT_NAME
+               ,A.DRT_PHONE              	  as DRT_PHONE
+               ,A.DRT_DPT              		  as DRT_DPT
+               ,A.DRT_EML              	  	  as DRT_EML
+         from kcgbd.T1_DRT  A
+	</select>
+</mapper>
