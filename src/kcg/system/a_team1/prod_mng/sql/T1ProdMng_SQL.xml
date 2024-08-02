@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace='system.a_team1_prod_mng'>
+
+	<select id="getList" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT
+		
+		prod_sn,
+		prod_name,
+		prod_type,
+		prod_min_amount,
+		prod_max_amount,
+		prod_payment_cycle,
+		TO_CHAR(prod_start_period, 'YYYY-MM-DD') AS prod_start_period,
+		TO_CHAR(prod_deadline_period, 'YYYY-MM-DD') AS prod_deadline_period,
+		prod_interest_taxation,
+		prod_sales_status,
+		TO_CHAR(prod_start_sale, 'YYYY-MM-DD') AS prod_start_sale,
+		TO_CHAR(prod_end_sale, 'YYYY-MM-DD') AS prod_end_sale
+		
+		FROM kcgbd.t1_prod	
+	</select>
+	
+	<select id="getSearch" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT
+		
+		prod_sn,
+		prod_name,
+		prod_type,
+		prod_min_amount,
+		prod_max_amount,
+		prod_payment_cycle,
+		TO_CHAR(prod_start_period, 'YYYY-MM-DD') AS prod_start_period,
+		TO_CHAR(prod_deadline_period, 'YYYY-MM-DD') AS prod_deadline_period,
+		prod_interest_taxation,
+		prod_sales_status,
+		TO_CHAR(prod_start_sale, 'YYYY-MM-DD') AS prod_start_sale,
+		TO_CHAR(prod_end_sale, 'YYYY-MM-DD') AS prod_end_sale
+		
+		FROM kcgbd.t1_prod	
+		
+		WHERE 1=1
+		<if test='prod_name != ""'>
+			AND prod_name LIKE CONCAT('%', #{prod_name} ,'%')	    
+			</if>
+	    <if test='prod_type != ""'>
+			AND prod_type LIKE CONCAT('%', #{prod_type} ,'%')
+	    </if>
+	    <if test='prod_start_sale != ""'>
+			AND TO_CHAR(prod_start_sale, 'YYYY-MM-DD') LIKE CONCAT('%', #{prod_start_sale} ,'%')
+	    </if>	
+	    <if test='prod_payment_cycle != "" and !prod_payment_cycle.equals("")'>
+			AND prod_payment_cycle = #{prod_payment_cycle}	
+	    </if>			
+	</select>
+	
+	<select id="getInfo" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT
+		
+		prod_sn,
+		prod_name,
+		prod_type,
+		prod_min_amount,
+		prod_max_amount,
+		prod_payment_cycle,
+		TO_CHAR(prod_start_period, 'YYYY-MM-DD') AS prod_start_period,
+		TO_CHAR(prod_deadline_period, 'YYYY-MM-DD') AS prod_deadline_period,
+		prod_start_period,
+		prod_deadline_period,
+		prod_interest_taxation,
+		prod_sales_status,
+		TO_CHAR(prod_start_sale, 'YYYY-MM-DD') AS prod_start_sale,
+		TO_CHAR(prod_end_sale, 'YYYY-MM-DD') AS prod_end_sale
+		
+		FROM kcgbd.t1_prod
+		
+		WHERE prod_sn = #{prod_sn}		
+	</select>
+	
+	<select id="getHist" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT
+			TO_CHAR(pr_stdt, 'YYYY-MM-DD') AS pr_stdt,
+			TO_CHAR(pr_eddt, 'YYYY-MM-DD') AS pr_eddt,
+			pr_max_ir,
+			pr_min_ir
+			
+		FROM kcgbd.t1_price_rate
+		WHERE pr_code = #{prod_sn}
+	</select>
+	
+	<delete id="delete" parameterType="cmmnMap">
+		DELETE FROM kcgbd.t1_prod
+		WHERE 1=1
+		AND prod_sn = #{prod_sn}
+	</delete>
+	
+	<update id="update" parameterType="cmmnMap">
+		UPDATE kcgbd.t1_prod
+		SET
+			prod_name				=	#{prod_name},
+			prod_type				=	#{prod_type},
+			prod_min_amount			=	#{prod_min_amount},
+			prod_max_amount			=	#{prod_max_amount},
+			prod_payment_cycle		=	#{prod_payment_cycle},
+			prod_start_period		=	#{prod_start_period},
+			prod_deadline_period	=	#{prod_deadline_period},
+			prod_interest_taxation	=	#{prod_interest_taxation},
+			prod_sales_status		=	#{prod_sales_status},
+			prod_start_sale			=	#{prod_start_sale},
+			prod_end_sale			=	#{prod_end_sale}
+			
+		WHERE 1=1
+		AND prod_sn = #{prod_sn}
+	</update>
+	
+	<insert id="insert" parameterType="cmmnMap">
+		INSERT INTO kcgbd.t1_prod(
+			prod_name,
+			prod_type,
+			prod_min_amount,
+			prod_max_amount,
+			prod_payment_cycle,
+			prod_start_period,
+			prod_deadline_period,
+			prod_interest_taxation,
+			prod_sales_status,
+			prod_start_sale,
+			prod_end_sale
+		)		
+		VALUES(
+			#{prod_name},
+			#{prod_type},
+			#{prod_min_amount},
+			#{prod_max_amount},
+			#{prod_payment_cycle},
+			#{prod_start_period},
+			#{prod_deadline_period},
+			#{prod_interest_taxation},
+			#{prod_sales_status},
+			#{prod_start_sale},
+			#{prod_end_sale}	
+		)
+	</insert>
+	
+	<select id="selectOne" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT prod_sn 
+		FROM kcgbd.t1_prod 
+		ORDER BY prod_sn DESC LIMIT 1		
+	</select>
+	
+	<insert id="insertHist" parameterType="cmmnMap">
+		INSERT INTO kcgbd.t1_price_rate(
+			pr_code,
+			pr_stdt,
+			pr_eddt,
+			pr_max_ir,
+			pr_min_ir			
+		)		
+		VALUES(
+			#{prod_sn},
+			#{prod_start_period},
+			#{prod_deadline_period},
+			#{pr_max_ir},
+			#{pr_min_ir}	
+		)
+	</insert>
+</mapper>
