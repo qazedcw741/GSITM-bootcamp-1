@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace='system.t1_promion_mng'>
+	<select id="getProdOne" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT 
+			p.prod_sn AS prod_sn,
+			p.prod_name AS prod_name,
+			r.pr_max_ir AS pr_max_ir,
+			r.pr_min_ir AS pr_min_ir
+		FROM
+			kcgbd.t1_prod AS p
+		JOIN
+			kcgbd.t1_price_rate AS r
+		ON 
+			p.prod_sn = r.pr_code
+		WHERE 1=1
+			<if test="prod_sn != null and prod_sn != ''">
+				AND p.prod_sn::text LIKE CONCAT('%', #{prod_sn}, '%')
+			</if>
+			<if test="prod_name != null and prod_name != ''">
+				AND p.prod_name LIKE CONCAT('%', #{prod_name}, '%')
+			</if>
+	</select>
+	<insert id="putProdDpst" parameterType="cmmnMap">
+		INSERT INTO kcgbd.t1_dsgn_dpst (
+			dsgn_dpst_prod_sn,
+			dsgn_dpst_name,
+			dsgn_dpst_pay_ty_cd,
+			dsgn_dpst_amt,
+			dsgn_dpst_prd,
+			dsgn_dpst_aply_rate,
+			dsgn_dpst_int_tax_ty_cd,
+			dsgn_dpst_tot_amt,
+			dsgn_dpst_tot_int,
+			dsgn_dpst_int_tax_amt,
+			dsgn_dpst_atx_rcve_amt,
+			dsgn_dpst_cust_mbl_telno,
+			dsgn_sav_sim_com,
+			dsgn_dpst_wrt_dt
+			)
+		VALUES (
+			#{dsgn_dpst_prod_sn},
+			#{dsgn_dpst_name},
+			#{dsgn_dpst_pay_ty_cd},
+			#{dsgn_dpst_amt},
+			#{dsgn_dpst_prd},
+			#{dsgn_dpst_aply_rate},
+			#{dsgn_dpst_int_tax_ty_cd},
+			#{dsgn_dpst_tot_amt},
+			#{dsgn_dpst_tot_int},
+			#{dsgn_dpst_int_tax_amt},
+			#{dsgn_dpst_atx_rcve_amt},
+			#{dsgn_dpst_cust_sn},
+			#{dsgn_sav_sim_com},
+			now()
+			)
+	</insert> <!-- 적금저장 -->
+	<insert id="putProdSav" parameterType="cmmnMap">
+		INSERT INTO kcgbd.t1_dsgn_sav (
+			dsgn_sav_prod_sn,
+			dsgn_sav_name,
+			dsgn_sav_atx_rcve_amt,
+			dsgn_sav_tax,
+			dsgn_sav_aply_rate,
+			dsgn_sav_paid,
+			dsgn_sav_target,
+			dsgn_sav_tot_amt,
+			dsgn_sav_tot_int,
+			dsgn_sav_int_tax_amt,
+			dsgn_sav_cust_mbl_telno,
+			dsgn_sav_date
+			)
+		VALUES (
+			#{dsgn_sav_prod_sn},
+			#{dsgn_sav_name},
+			#{dsgn_sav_atx_rcve_amt},
+			#{dsgn_sav_tax},
+			#{dsgn_sav_aply_rate},
+			#{dsgn_sav_paid},
+			#{dsgn_sav_target},
+			#{dsgn_sav_tot_amt},
+			#{dsgn_sav_tot_int},
+			#{dsgn_sav_int_tax_amt},
+			#{dsgn_sav_cust_sn},
+			now()
+			)
+	</insert> <!-- 예금저장 -->
+	<insert id="putProdAcml"  parameterType="cmmnMap">
+		INSERT INTO kcgbd.t1_dsgn_acml (
+			dsgn_acml_prod_sn,
+			dsgn_acml_prod_name,
+			dsgn_acml_pay_ty_cd,
+			dsgn_acml_int_tax_ty_cd,
+			dsgn_acml_aply_rate,
+			dsgn_acml_amt,
+			dsgn_acml_goal_amt,
+			dsgn_acml_goal_prd,
+			dsgn_acml_tot_amt,
+			dsgn_acml_tot_int,
+			dsgn_acml_int_tax_amt,
+			dsgn_acml_atx_rcve_amt,
+			dsgn_acml_cust_mbl_telno,
+			dsgn_acml_wrt_dt
+			)
+		VALUES (
+			#{dsgn_acml_prod_sn},
+			#{dsgn_acml_prod_name},
+			#{dsgn_acml_pay_ty_cd},
+			#{dsgn_acml_int_tax_ty_cd},
+			#{dsgn_acml_aply_rate},
+			#{dsgn_acml_amt},
+			#{dsgn_acml_goal_amt},
+			#{dsgn_acml_goal_prd},
+			#{dsgn_acml_tot_amt},
+			#{dsgn_acml_tot_int},
+			#{dsgn_acml_int_tax_amt},
+			#{dsgn_acml_atx_rcve_amt},
+			#{dsgn_acml_cust_sn},
+			now()
+			)
+	</insert><!-- 목돈저장 -->
+	<insert id="putProdLoan" parameterType="cmmnMap">
+		INSERT INTO kcgbd.t1_dsgn_loan (
+			dsgn_loan_prod_sn,
+			dsgn_loan_name,
+			dsgn_loan_rpty_cd,
+			dsgn_loan_aply_rate,
+			dsgn_loan_amt,
+			dsgn_loan_repy_prd,
+			dsgn_loan_pay_amt,
+			dsgn_loan_circle_pay_amt,
+			dsgn_loan_int_tax_amt,
+			dsgn_loan_tot_pay_amt,
+			dsgn_loan_cust_mbl_telno,
+			dsgn_loan_wrt_dt
+			)
+		VALUES (
+			#{dsgn_loan_prod_sn},
+			#{dsgn_loan_name},
+			#{dsgn_loan_rpty_cd},
+			#{dsgn_loan_aply_rate},
+			#{dsgn_loan_amt},
+			#{dsgn_loan_repy_prd},
+			#{dsgn_loan_pay_amt},
+			#{dsgn_loan_circle_pay_amt},
+			#{dsgn_loan_int_tax_amt},
+			#{dsgn_loan_tot_pay_amt},
+			#{dsgn_loan_cust_sn},
+			now()
+			)
+	</insert><!-- 대출저장 -->
+	<select id="getProdList" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT 
+			p.prod_sn AS prod_sn,
+			p.prod_name AS prod_name,
+			r.pr_max_ir AS pr_max_ir,
+			r.pr_min_ir AS pr_min_ir,
+			p.prod_score AS prod_score
+		FROM
+			kcgbd.t1_prod AS p
+		JOIN
+			kcgbd.t1_price_rate AS r
+		ON 
+			p.prod_sn = r.pr_code
+		WHERE
+			p.prod_type = #{prod_category}
+			AND TO_CHAR(r.pr_stdt, 'YYYY') = TO_CHAR(CURRENT_DATE, 'YYYY')
+	</select>
+	<select id="putProdInfo" parameterType="cmmnMap" resultType="cmmnMap">
+		SELECT
+			p.prod_sn AS prod_sn,
+			p.prod_name AS prod_name,
+			p.prod_payment_cycle AS prod_payment_cycle,
+			p.prod_interest_taxation AS prod_interest_taxation,
+			r.pr_max_ir AS pr_max_ir
+		FROM
+			kcgbd.t1_prod AS p
+		JOIN
+			kcgbd.t1_price_rate AS r
+		ON
+			p.prod_sn = r.pr_code
+		WHERE
+			p.prod_sn = CAST(#{prod_sn} AS INTEGER)
+			AND TO_CHAR(r.pr_stdt, 'YYYY') = TO_CHAR(CURRENT_DATE, 'YYYY')
+	</select>
+	<select id="getRecommendPd" parameterType="cmmnMap" resultType="cmmnMap"> <!-- 대출추천 추가한 부분 -->
+	   SELECT 
+		    p.prod_sn AS prod_sn,
+		    p.prod_name AS prod_name,
+		    p.prod_score AS prod_score,
+		    r.pr_max_ir AS pr_max_ir,
+		    r.pr_min_ir AS pr_min_ir
+		FROM
+		    kcgbd.t1_prod AS p
+		JOIN
+		    kcgbd.t1_price_rate AS r ON p.prod_sn = r.pr_code
+		JOIN
+		    kcgbd.t1_cust AS c ON c.cust_mbl_telno = #{cust_mbl_telno}
+		WHERE
+		    p.prod_type = '대출'
+		AND TO_CHAR(r.pr_stdt, 'YYYY') = TO_CHAR(CURRENT_DATE, 'YYYY');
+	</select>
+	<!--설계리스트  전체보기-->
+	<select id="getListPaging" parameterType="cmmnMap" resultType="cmmnMap">
+    /* system.t1_promion_mng.getListPaging */
+    SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(loan.dsgn_loan_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '대출' AS prod_type,
+	    loan.dsgn_loan_name AS prod_name,
+	    loan.dsgn_loan_amt AS amt,
+	    loan.dsgn_loan_repy_prd AS goal,
+	    dsgn_loan_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_loan AS loan
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = loan.dsgn_loan_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON loan.dsgn_loan_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+
+	UNION ALL
+
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(sav.dsgn_sav_date, 'YYYY-MM-DD') AS wrt_dt,
+	    '예금' AS prod_type,
+	    sav.dsgn_sav_name AS prod_name,
+	    sav.dsgn_sav_tot_amt AS amt,
+	    sav.dsgn_sav_target AS goal,
+	    dsgn_sav_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_sav AS sav
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = sav.dsgn_sav_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON sav.dsgn_sav_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	
+	UNION ALL
+	
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(acml.dsgn_acml_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '목돈' AS prod_type,
+	    acml.dsgn_acml_prod_name AS prod_name,
+	    acml.dsgn_acml_goal_amt AS amt,
+	    acml.dsgn_acml_goal_prd AS goal,
+	    dsgn_acml_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_acml AS acml
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = acml.dsgn_acml_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON acml.dsgn_acml_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	
+	UNION ALL
+	
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(dpst.dsgn_dpst_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '적금' AS prod_type,
+	    dpst.dsgn_dpst_name AS prod_name,
+	    dpst.dsgn_dpst_tot_amt AS amt,
+	    dpst.dsgn_dpst_prd AS goal,
+	    dsgn_dpst_aply_rate AS rate,
+	    CASE
+	        WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+	        THEN '종료'
+	        ELSE '진행중'
+	    END AS state
+	FROM kcgbd.t1_dsgn_dpst AS dpst
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = dpst.dsgn_dpst_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON dpst.dsgn_dpst_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+</select>
+
+<!--설계리스트  조건검색-->
+<select id="selectOnePaging" parameterType="cmmnMap" resultType="cmmnMap">
+    /* system.t1_promion_mng.selectOnePaging */
+     WITH state AS (
+       SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(loan.dsgn_loan_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '대출' AS prod_type,
+	    loan.dsgn_loan_name AS prod_name,
+	    loan.dsgn_loan_amt AS amt,
+	    loan.dsgn_loan_repy_prd AS goal,
+	    dsgn_loan_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_loan AS loan
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = loan.dsgn_loan_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON loan.dsgn_loan_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+
+	UNION ALL
+
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(sav.dsgn_sav_date, 'YYYY-MM-DD') AS wrt_dt,
+	    '예금' AS prod_type,
+	    sav.dsgn_sav_name AS prod_name,
+	    sav.dsgn_sav_tot_amt AS amt,
+	    sav.dsgn_sav_target AS goal,
+	    dsgn_sav_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_sav AS sav
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = sav.dsgn_sav_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON sav.dsgn_sav_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	
+	UNION ALL
+	
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(acml.dsgn_acml_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '목돈' AS prod_type,
+	    acml.dsgn_acml_prod_name AS prod_name,
+	    acml.dsgn_acml_goal_amt AS amt,
+	    acml.dsgn_acml_goal_prd AS goal,
+	    dsgn_acml_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_acml AS acml
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = acml.dsgn_acml_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON acml.dsgn_acml_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	
+	UNION ALL
+	
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(dpst.dsgn_dpst_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '적금' AS prod_type,
+	    dpst.dsgn_dpst_name AS prod_name,
+	    dpst.dsgn_dpst_tot_amt AS amt,
+	    dpst.dsgn_dpst_prd AS goal,
+	    dsgn_dpst_aply_rate AS rate,
+	    CASE
+	        WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+	        THEN '종료'
+	        ELSE '진행중'
+	    END AS state
+	FROM kcgbd.t1_dsgn_dpst AS dpst
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = dpst.dsgn_dpst_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON dpst.dsgn_dpst_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	)
+	SELECT
+		state.cust_name,
+		state.cust_mbl_telno,
+		state.wrt_dt,
+		state.prod_type,
+		state.prod_name,
+		state.amt,
+		state.goal,
+		state.state
+	FROM state
+	WHERE 1 = 1
+		<!-- 고객이름 검색 -->
+		<if test="cust_name != null">
+			AND state.cust_name LIKE '%' || #{cust_name} || '%'
+		</if>
+		<!-- 상품유형 검색 -->
+		<if test="prod_type != null">
+			AND state.prod_type LIKE '%' || #{prod_type} || '%'
+		</if>
+		<!-- 상품명 검색 -->
+		<if test="prod_name != null">
+			AND state.prod_name LIKE '%' || #{prod_name} || '%'
+		</if>
+		<!-- 휴대전화 검색 -->
+		<if test="cust_mbl_telno != null">
+			AND state.cust_mbl_telno LIKE '%' || #{cust_mbl_telno} || '%'
+		</if>
+</select>
+
+<!--진행중인 이벤트만 보기-->
+<select id="statePaging" parameterType="cmmnMap" resultType="cmmnMap">
+    /* system.t1_promion_mng.statePaging */
+    WITH state AS (
+        SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(loan.dsgn_loan_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '대출' AS prod_type,
+	    loan.dsgn_loan_name AS prod_name,
+	    loan.dsgn_loan_amt AS amt,
+	    loan.dsgn_loan_repy_prd AS goal,
+	    dsgn_loan_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((loan.dsgn_loan_wrt_dt + INTERVAL '1 month' * loan.dsgn_loan_repy_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_loan AS loan
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = loan.dsgn_loan_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON loan.dsgn_loan_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+
+	UNION ALL
+
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(sav.dsgn_sav_date, 'YYYY-MM-DD') AS wrt_dt,
+	    '예금' AS prod_type,
+	    sav.dsgn_sav_name AS prod_name,
+	    sav.dsgn_sav_tot_amt AS amt,
+	    sav.dsgn_sav_target AS goal,
+	    dsgn_sav_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((sav.dsgn_sav_date + INTERVAL '1 month' * sav.dsgn_sav_target),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_sav AS sav
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = sav.dsgn_sav_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON sav.dsgn_sav_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	
+	UNION ALL
+	
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(acml.dsgn_acml_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '목돈' AS prod_type,
+	    acml.dsgn_acml_prod_name AS prod_name,
+	    acml.dsgn_acml_goal_amt AS amt,
+	    acml.dsgn_acml_goal_prd AS goal,
+	    dsgn_acml_aply_rate AS rate,
+    CASE
+        WHEN TO_CHAR((acml.dsgn_acml_wrt_dt + INTERVAL '1 month' * acml.dsgn_acml_goal_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+        THEN '종료'
+        ELSE '진행중'
+    END AS state
+	FROM kcgbd.t1_dsgn_acml AS acml
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = acml.dsgn_acml_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON acml.dsgn_acml_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+	
+	UNION ALL
+	
+	SELECT
+	    A.cust_name AS cust_name,
+	    A.cust_mbl_telno AS cust_mbl_telno,
+	    TO_CHAR(dpst.dsgn_dpst_wrt_dt, 'YYYY-MM-DD') AS wrt_dt,
+	    '적금' AS prod_type,
+	    dpst.dsgn_dpst_name AS prod_name,
+	    dpst.dsgn_dpst_tot_amt AS amt,
+	    dpst.dsgn_dpst_prd AS goal,
+	    dsgn_dpst_aply_rate AS rate,
+	    CASE
+	        WHEN TO_CHAR((dpst.dsgn_dpst_wrt_dt + INTERVAL '1 month' * dpst.dsgn_dpst_prd),'YYYY-MM-DD') &lt; TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')
+	        THEN '종료'
+	        ELSE '진행중'
+	    END AS state
+	FROM kcgbd.t1_dsgn_dpst AS dpst
+	INNER JOIN kcgbd.t1_cust AS A ON A.cust_mbl_telno = dpst.dsgn_dpst_cust_mbl_telno
+	INNER JOIN kcgbd.t1_prod AS C ON dpst.dsgn_dpst_prod_sn = C.prod_sn
+	WHERE A.cust_yn = 'Y'
+		)
+	SELECT
+		state.cust_name,
+		state.cust_mbl_telno,
+		state.wrt_dt,
+		state.prod_type,
+		state.prod_name,
+		state.amt,
+		state.goal,
+		state.state
+	FROM state
+	WHERE state.state = '진행중'
+
+</select>
+</mapper>
